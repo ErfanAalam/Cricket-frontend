@@ -16,29 +16,21 @@ const Login = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    let phoneNumber = LoginPhone.trim();
-
-    // Remove spaces, dashes, or non-numeric characters
-    phoneNumber = phoneNumber.replace(/\D/g, "");
-
-    // Ensure it starts with +91
-    if (!phoneNumber.startsWith("91")) {
-      phoneNumber = `91${phoneNumber}`;
-    }
-
-    phoneNumber = `+${phoneNumber}`;
-
-    const phoneRegex = /^\+91[6-9]\d{9}$/;
-
-    if (!phoneRegex.test(phoneNumber)) {
-      setError(
-        "Invalid phone number. Must be a valid Indian number (+91XXXXXXXXXX)."
-      );
+    
+    // Clean and format phone number
+    let phoneNumber = LoginPhone.trim().replace(/\D/g, "");
+    
+    // Validate phone number format
+    if (phoneNumber.length !== 10 || !/^[6-9]\d{9}$/.test(phoneNumber)) {
+      setError("Invalid phone number. Must be a valid 10-digit Indian mobile number.");
       return;
-    } else {
-      setLoginPhone(phoneNumber);
-      navigate("/verifypass");
     }
+
+    // Format phone number with country code
+    phoneNumber = `+91-${phoneNumber}`;
+    setLoginPhone(phoneNumber);
+    setError("");
+    navigate("/verifypass");
   };
 
   return (

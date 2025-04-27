@@ -7,8 +7,8 @@ import { toast } from "react-toastify";
 
 
 export default function Signup() {
-  const { SignupPhone, setSignupPhone, sendOtp, handleGoogleSuccess } =
-    useContext(UserContext);
+  const { SignupPhone, setSignupPhone, sendOtp, handleGoogleSuccess } = useContext(UserContext);
+  const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
   const [Name,setName] = useState("")
 
@@ -19,44 +19,31 @@ export default function Signup() {
   const handleNext = async (e) => {
     e.preventDefault();
 
-    let phoneNumber = SignupPhone.trim();
-
-    // Remove spaces, dashes, or non-numeric characters
-    phoneNumber = phoneNumber.replace(/\D/g, "");
-
-    // Ensure it starts with +91
-    if (!phoneNumber.startsWith("91")) {
-      phoneNumber = `91${phoneNumber}`;
-    }
-
-    phoneNumber = `+${phoneNumber}`;
-
-    const phoneRegex = /^\+91[6-9]\d{9}$/;
-
-    if (!phoneRegex.test(phoneNumber)) {
-      setError(
-        "Invalid phone number. Must be a valid Indian number (+91XXXXXXXXXX)."
-      );
+    // Clean and format phone number
+    let phoneNumber = SignupPhone.trim().replace(/\D/g, "");
+    
+    // Validate phone number format
+    if (phoneNumber.length !== 10 || !/^[6-9]\d{9}$/.test(phoneNumber)) {
+      setError("Invalid phone number. Must be a valid 10-digit Indian mobile number.");
       return;
     }
 
+    // Format phone number with country code
+    phoneNumber = `+91-${phoneNumber}`;
     setSignupPhone(phoneNumber);
-
     setError("");
 
     try {
-      const response = await sendOtp(Name,phoneNumber);
-
+      const response = await sendOtp(Name, phoneNumber, referralCode);
+      
       if (response?.message === "OTP sent successfully") {
-        toast.success(response?.message);
-        navigate("/verifyOtp");
+          toast.success(response?.message);
+          navigate("/verifyOtp");
       } else if (response?.message === "User already exist") {
-        toast.info(
-          "User already exist. Please login with your registered phone number."
-        );
-        navigate("/login");
+          toast.info("User already exist. Please login with your registered phone number.");
+          navigate("/login");
       } else {
-        toast.error(response?.error || "Failed to send OTP. Please try again.");
+          toast.error(response?.error || "Failed to send OTP. Please try again.");
       }
     } catch (error) {
       console.log(error);
@@ -86,7 +73,7 @@ export default function Signup() {
             <input
                 type="text"
                 placeholder="Username*"
-                className="border-gray-700 cursor-pointer  p-4 rounded-lg text-white outline-2 outline-gray-500 w-full"
+                className="border-gray-700 cursor-pointer p-4 rounded-lg text-white outline-2 outline-gray-500 w-full"
                 value={Name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -103,6 +90,13 @@ export default function Signup() {
                   setSignupPhone(e.target.value);
                   setError("");
                 }}
+              />
+              <input
+                type="text"
+                placeholder="Referral Code (Optional)"
+                className="border-gray-700 cursor-pointer  p-4 rounded-lg text-white outline-2 outline-gray-500 w-full"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
               />
               {error && <p className="text-red-500 text-sm">{error}</p>}
              

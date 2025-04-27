@@ -19,6 +19,14 @@ import {ToastContainer} from 'react-toastify'
 import UserProfile from "./components/Dashboard/Profile/UserProfile";
 import Portfolio from "./components/Dashboard/mini-components/Portfolio";
 import Teamstats from "./components/Dashboard/mini-components/Teamstats";
+import Contact from "./components/Dashboard/StaticComponents/Contact";
+import About from "./components/Dashboard/StaticComponents/About";
+import Transactions from './components/Dashboard/Transactions';
+import Withdraw from './components/Dashboard/Withdraw';
+import KYCVerification from './components/Dashboard/KYC';
+import InviteFriends from './components/Dashboard/Invite';
+import TermsAndConditions from './components/Dashboard/Legal/TermsAndConditions';
+import PrivacyPolicy from './components/Dashboard/Legal/PrivacyPolicy';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -52,7 +60,14 @@ function App() {
             <Route path="/UserProfile" element={<PrivateRoute><UserProfile/></PrivateRoute>}/>
             <Route path="/portfolio" element={<PrivateRoute><Portfolio /></PrivateRoute>} />
             <Route path="/team-stats" element={<PrivateRoute><Teamstats /></PrivateRoute>} />
-
+            <Route path="/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
+            <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/kyc" element={<KYCVerification />} />
+            <Route path="/invite" element={<InviteFriends />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />          
             <Route path="/signup" element={<Signup />} />
             <Route path="/verifyOtp" element={<VerifyOTP />} />
             <Route path="/setpassword" element={<SetPassword />} />
@@ -61,7 +76,8 @@ function App() {
             <Route path="/forgot-password" element={<ForgetPass/>}/> 
             <Route path="/forgot-password/verify-password" element={<ForgetVerifyOtp/>}/> 
             <Route path="/forgot-password/changePass" element={<ChangePass/>} />
-            <Route path="/*" element={<>No Such Endpoint</>} />
+            <Route path="/*" element={<>No Such Endpoints</>} />
+
           </Routes>
         </Router>
           </>

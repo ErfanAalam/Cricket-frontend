@@ -1,0 +1,119 @@
+:root {
+  --primary-color: #1a73e8;
+  --secondary-color: #174ea6;
+  --text-light: #ffffff;
+  --text-dark: #202124;
+  --border-color: #e8eaed;
+  --shadow-color: rgba(26, 115, 232, 0.2);
+  --background-gradient: linear-gradient(135deg, #1a73e8, #174ea6);
+  --card-background: #ffffff;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --hover-shadow: 0 8px 16px rgba(26, 115, 232, 0.16);
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  color: var(--text-light);
+  background: transparent;
+  border-radius: 16px;
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 4rem;
+  padding: 3rem 2rem;
+  background: var(--background-gradient);
+  border-radius: 12px;
+  color: var(--text-light);
+  box-shadow: var(--shadow);
+}
+
+.about-header__title {
+  font-size: 2.8rem;
+  margin-bottom: 1.2rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.about-header__subtitle {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-mission {
+  background: var(--card-background);
+  padding: 2.5rem;
+  margin-bottom: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-mission:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--hover-shadow);
+}
+
+.about-mission__title {
+  text-align: center;
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  font-size: 2.2rem;
+  font-weight: 600;
+}
+
+.about-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  margin-top: 2rem;
+}
+
+.about-feature-card {
+  background: var(--card-background);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+}
+
+.about-feature-card:hover {
+  transform: translateY(-4px);
+  background: var(--primary-color);
+  border-color: transparent;
+  box-shadow: var(--hover-shadow);
+}
+
+.about-team {
+  margin-top: 50px;
+  text-align: center;
+  background: var(--background-gradient);
+  color: var(--text-light);
+  padding: 3.5rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+  .about-container {
+    padding: 1.5rem;
+  }
+
+  .about-header {
+    padding: 2rem 1.5rem;
+  }
+
+  .about-header__title {
+    font-size: 2.2rem;
+  }
+
+  .about-features {
+    gap: 1.5rem;
+  }
+}

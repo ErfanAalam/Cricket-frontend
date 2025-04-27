@@ -3,6 +3,9 @@ import React, { useContext, useState } from "react";
 import { Menu, X } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../Context/UserContext";
+
+// import dmdp from "/assets/dmdp.png"
+
 import dmdp from "/assets/dmdp.jpg?url";
 
 const Navbar = () => {
@@ -40,9 +43,6 @@ const Navbar = () => {
         </a>
         <a href="/portfolio" className="hover:text-blue-500 transition-colors">
           Portfolio
-        </a>
-        <a href="/wallet" className="hover:text-blue-500 transition-colors">
-          Wallet
         </a>
         <a href="/contact" className="hover:text-blue-500 transition-colors">
           Contact

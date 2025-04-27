@@ -28,10 +28,11 @@ export const UserProvider = ({ children }) => {
   const [seriesMatchData, setSeriesMatchData] = useState(null);
 
   // Authentication Methods
-  const sendOtp = async (Name, phonenumber) => {
+  const sendOtp = async (Name, phonenumber,referralCode) => {
     const response = await axios.post(`${BACKEND_URL}/auth/send-otp`, {
       name: Name,
       mobile: phonenumber,
+      referredBy: referralCode,
     });
     return response.data;
   };
@@ -197,6 +198,8 @@ export const UserProvider = ({ children }) => {
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
+        transports: ["websocket", "polling"],
+        withCredentials:true,
         timeout: 20000,
       });
 
@@ -226,6 +229,15 @@ export const UserProvider = ({ children }) => {
       socket.current.on("connect_error", (error) => {
         console.error("Socket connection error:", error);
         toast.error("Connection error. Retrying...");
+      });
+
+      socket.current.on("connect_timeout", (timeout) => {
+        console.error("Socket connection timeout:", timeout);
+        toast.error("Connection timeout. Please try again.");
+      });
+      socket.current.on("reconnect_attempt", (attempt) => {
+        console.log("Reconnecting to WebSocket server, attempt:", attempt);
+        toast.info(`Reconnecting to server... Attempt: ${attempt}`);
       });
 
       socket.current.on("disconnect", (reason) => {
@@ -349,9 +361,9 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser)); // Load user from localStorage if available
+      setUser(JSON.parse(storedUser));
     } else {
-      fetchUserData(); // Fetch user details if not in localStorage
+      fetchUserData();
       return;
     }
   }, []);
