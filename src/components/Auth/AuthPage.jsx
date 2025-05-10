@@ -9,6 +9,8 @@ import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID
 
+// new comment add for deployement in vercel
+
 
 // Validation functions
 const validatePassword = (password) => {
