@@ -26,15 +26,16 @@ export const UserProvider = ({ children }) => {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [seriesMatchData, setSeriesMatchData] = useState(null);
+  const [connectedUsers, setConnectedUsers] = useState(0);
 
   // Authentication Methods
-  const sendOtp = async (Name, phonenumber,referralCode) => {
+  const sendOtp = async (name, phoneNumber, referralCode) => {
     const response = await axios.post(`${BACKEND_URL}/auth/send-otp`, {
-      name: Name,
-      mobile: phonenumber,
+      name: name,
+      mobile: phoneNumber,
       referredBy: referralCode,
     });
-    return response.data;
+    return response;
   };
 
   const sendForgotPasswordOtp = async (phonenumber) => {
@@ -60,13 +61,15 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const verifyOtp = async (mobile, otp) => {
+  const verifyOtp = async (name, mobile, password, otp) => {
     try {
       const response = await axios.post(`${BACKEND_URL}/auth/verify-otp`, {
+        name,
         mobile,
-        otp,
+        password,
+        otp
       });
-      return response.data;
+      return response;
     } catch (error) {
       console.error("OTP Verification Error:", error);
       return {
@@ -77,7 +80,7 @@ export const UserProvider = ({ children }) => {
 
   const setPasswordHandler = async (mobile, password) => {
     await axios.post(`${BACKEND_URL}/auth/set-password`, { mobile, password });
-    alert("Signup complete! Now you can login");
+    toast.info("Signup complete! Now you can login");
   };
 
   const login = async (mobile, password) => {
@@ -86,10 +89,9 @@ export const UserProvider = ({ children }) => {
         mobile,
         password,
       });
-
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        alert("Login successful! Welcome to Dashboard.");
+        toast.info("Login successful! Welcome to Dashboard.");
         return { success: true, message: response.data.message };
       }
     } catch (error) {
@@ -104,7 +106,7 @@ export const UserProvider = ({ children }) => {
     const tokenId = credentialResponse.credential;
 
     if (!tokenId) {
-      alert("Google authentication failed!");
+      toast.info("Google authentication failed!");
       return;
     }
 
@@ -113,7 +115,7 @@ export const UserProvider = ({ children }) => {
     });
     if (response.data.token) {
       localStorage.setItem("token", response.data.token);
-      alert("Login successful! Welcome to Dashboard.");
+      toast.info("Login successful! Welcome to Dashboard.");
       window.location.href = "/";
       return { success: true, message: response.data.message };
     }
@@ -199,12 +201,14 @@ export const UserProvider = ({ children }) => {
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         transports: ["websocket", "polling"],
-        withCredentials:true,
+        withCredentials: true,
         timeout: 20000,
       });
 
       socket.current.on("connect", () => {
         console.log("Connected to WebSocket server");
+        // Fetch initial connected users count
+        fetchConnectedUsers();
 
         const savedMatch = localStorage.getItem("SelectedMatch");
         if (savedMatch) {
@@ -318,12 +322,12 @@ export const UserProvider = ({ children }) => {
   const formatDate = (timestamp) => {
     return timestamp
       ? new Date(Number(timestamp)).toLocaleString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
       : "Date Not Available";
   };
 
@@ -645,6 +649,22 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Add function to fetch connected users count
+  const fetchConnectedUsers = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/match-scores/connected-users`);
+      setConnectedUsers(response.data.count);
+    } catch (error) {
+      console.error("Error fetching connected users:", error);
+    }
+  };
+
+  // Add periodic check for connected users
+  useEffect(() => {
+    const interval = setInterval(fetchConnectedUsers, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
@@ -678,6 +698,7 @@ export const UserProvider = ({ children }) => {
         seriesMatchData,
         handleGetScore,
         formatDate,
+        connectedUsers,
 
         // uploadProfileImage
         uploadImage,

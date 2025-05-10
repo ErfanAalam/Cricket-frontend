@@ -9,8 +9,8 @@ const Teamcard = ({ team }) => {
   
   return (
     <div
-      className={`flex flex-col gap-42rounded-lg p-3 border ${
-        team.color === "green" ? "border-green-500" : "border-yellow-500"
+      className={`flex flex-col gap-42rounded-lg p-3 rounded-xl border ${
+        team.color === "green" ? "border-green-500" : "border-red-500"
       }`}
     onClick={()=>{team.name !== 'Team 1' ? navigate("/team-stats") : null}}>
       <div className="flex justify-between items-center mb-2">
@@ -41,7 +41,7 @@ const Teamcard = ({ team }) => {
           <div
             key={index}
             className={`w-1 md:w-5 ${
-              team.color === "green" ? "bg-green-500" : "bg-yellow-500"
+              team.color === "green" ? "bg-green-500" : "bg-red-500"
             }`}
             style={{
               height: `${(value / Math.max(...team.graphData)) * 100}%`,

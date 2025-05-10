@@ -1,7 +1,53 @@
 @import "tailwindcss";
 
-body{
-    background-color:#071c38f3;
-    font-family: poppins;
-    color: white;
+body {
+  background-color: #001D4F;
+  font-family: poppins;
+  color: white;
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.afi{
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.mc{
+    scrollbar-color: transparent transparent;
+}
+.sc{
+    box-shadow: -2px -2px 2px #fdfdfd59;
+}
+

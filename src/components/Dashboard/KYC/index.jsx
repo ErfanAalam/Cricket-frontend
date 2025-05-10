@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-
+import Navbar from '../Navbar/Navbar';
 const KYCVerification = () => {
   const [aadharName, setAadharName] = useState('');
   const [aadharNumber, setAadharNumber] = useState('');
@@ -59,8 +59,10 @@ const KYCVerification = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white p-4 md:p-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="mt-10 max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
           KYC Verification
         </h1>
@@ -152,6 +154,7 @@ const KYCVerification = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -58,7 +58,7 @@ const Navbar = () => {
         <img
             src={user.profileImage ? user.profileImage : dmdp}
             alt="Profile"
-            className="w-16 h-12 rounded-full border-2 border-white object-cover"
+            className="w-16 h-12 rounded border-white object-cover"
           />
       </div>
     </div>
@@ -110,15 +110,6 @@ const Navbar = () => {
                 onClick={toggleMenu}
               >
                 Portfolio
-              </a>
-            </li>
-            <li>
-              <a
-                href="/wallet"
-                className="block py-2 text-gray-300 hover:text-blue-500 transition-colors"
-                onClick={toggleMenu}
-              >
-                Wallet
               </a>
             </li>
             <li>

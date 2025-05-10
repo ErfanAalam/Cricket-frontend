@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Contact.css';
+import Navbar from '../Navbar/Navbar';
 function Contact() {
   const [formData, setFormData] = useState({
     name: '',
@@ -17,9 +17,7 @@ function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically handle form submission
     console.log('Form submitted:', formData);
-    // Reset form
     setFormData({
       name: '',
       email: '',
@@ -29,13 +27,18 @@ function Contact() {
   };
 
   return (
-    <div className="contact-container">
-      <h1>Contact Us</h1>
-      <p>Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
-      
-      <form onSubmit={handleSubmit} className="contact-form">
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
+    <>
+    <Navbar/>
+    <div className="mt-10 max-w-2xl mx-auto p-8 bg-[#07162d] text-white rounded-xl shadow-lg">
+      <h1 className="text-3xl font-bold mb-4">Contact Us</h1>
+      <p className="mb-8 text-white/90">
+        Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Name */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="name" className="font-medium">Name</label>
           <input
             type="text"
             id="name"
@@ -43,11 +46,13 @@ function Contact() {
             value={formData.name}
             onChange={handleChange}
             required
+            className="p-3 rounded-md border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
+        {/* Email */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className="font-medium">Email</label>
           <input
             type="email"
             id="email"
@@ -55,11 +60,13 @@ function Contact() {
             value={formData.email}
             onChange={handleChange}
             required
+            className="p-3 rounded-md border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="subject">Subject</label>
+        {/* Subject */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="subject" className="font-medium">Subject</label>
           <input
             type="text"
             id="subject"
@@ -67,11 +74,13 @@ function Contact() {
             value={formData.subject}
             onChange={handleChange}
             required
+            className="p-3 rounded-md border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="message">Message</label>
+        {/* Message */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="message" className="font-medium">Message</label>
           <textarea
             id="message"
             name="message"
@@ -79,12 +88,20 @@ function Contact() {
             onChange={handleChange}
             required
             rows="5"
+            className="p-3 rounded-md border border-gray-300 text-black resize-vertical focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
         </div>
 
-        <button type="submit" className="submit-btn">Send Message</button>
+        {/* Submit */}
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md transition duration-200"
+        >
+          Send Message
+        </button>
       </form>
     </div>
+    </>
   );
 }
 

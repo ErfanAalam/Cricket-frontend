@@ -41,3 +41,25 @@
       animation: dotFade 0.8s ease-in-out forwards;
     }
   }
+
+  .box{
+    border: 2px solid gray;
+  }
+  .live{
+    background-color: transparent;
+    color: #e53935;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 10px;animation: live 1s infinite
+  }
+
+  @keyframes live {
+    0% {
+      color: transparent;
+      font-weight: 600;
+    }
+    
+    100% {
+      font-weight:  600;
+      }
+} 

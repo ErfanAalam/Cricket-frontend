@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { UserContext } from '../../../context/UserContext';
+import { UserContext } from '../../../Context/UserContext.jsx';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import Navbar from '../Navbar/Navbar.jsx';
 const Withdraw = () => {
   const { user } = useContext(UserContext);
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -35,9 +35,9 @@ const Withdraw = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const amount = parseFloat(withdrawAmount);
-    
+
     if (!amount || amount <= 0) {
       toast.error('Please enter a valid amount');
       return;
@@ -63,14 +63,14 @@ const Withdraw = () => {
     try {
       // TODO: Add your API call here
       // await withdrawFunds(amount);
-      
+
       toast.update(toastId, {
         render: 'Withdrawal successful!',
         type: 'success',
         isLoading: false,
         autoClose: 3000
       });
-      
+
       setWithdrawAmount('');
     } catch (error) {
       toast.update(toastId, {
@@ -85,6 +85,8 @@ const Withdraw = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
@@ -112,31 +114,31 @@ const Withdraw = () => {
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   ₹
                 </span>
-                <input 
+                <input
                   type="number"
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   className="w-full p-3 pl-8 rounded-lg bg-blue-700/30 border border-blue-500 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
                   min="0"
                   step="0.01"
                   disabled={isLoading}
-                />
+                  />
               </div>
               <p className="text-sm text-gray-400 mt-2">
                 Minimum: ₹{withdrawLimitLower.toLocaleString()} | Maximum: ₹{withdrawLimitUpper.toLocaleString()}
               </p>
             </div>
 
-            <button 
+            <button
               type="submit"
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 
-                       hover:from-blue-600 hover:to-blue-700 text-white font-semibold 
-                       py-3 px-8 rounded-lg transform hover:scale-[1.02] 
-                       transition-all duration-300 shadow-lg disabled:opacity-50"
-            >
+              hover:from-blue-600 hover:to-blue-700 text-white font-semibold 
+              py-3 px-8 rounded-lg transform hover:scale-[1.02] 
+              transition-all duration-300 shadow-lg disabled:opacity-50"
+              >
               {isLoading ? 'Processing...' : 'Withdraw'}
             </button>
           </form>
@@ -150,18 +152,17 @@ const Withdraw = () => {
             </h2>
             <div className="space-y-4">
               {withdrawHistory.map((withdrawal) => (
-                <div 
-                  key={withdrawal.id} 
-                  className="flex justify-between items-center p-4 bg-blue-700/20 rounded-lg hover:bg-blue-700/30 transition-colors"
+                <div
+                key={withdrawal.id}
+                className="flex justify-between items-center p-4 bg-blue-700/20 rounded-lg hover:bg-blue-700/30 transition-colors"
                 >
                   <div className="space-y-1">
                     <p className="text-gray-300">{withdrawal.date}</p>
                     <p className="text-sm text-gray-400">TxID: {withdrawal.transactionId}</p>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      withdrawal.status === 'Completed' 
-                        ? 'bg-green-500/20 text-green-300'
-                        : 'bg-yellow-500/20 text-yellow-300'
-                    }`}>
+                    <span className={`text-xs px-2 py-1 rounded ${withdrawal.status === 'Completed'
+                      ? 'bg-green-500/20 text-green-300'
+                      : 'bg-yellow-500/20 text-yellow-300'
+                      }`}>
                       {withdrawal.status}
                     </span>
                   </div>
@@ -174,15 +175,16 @@ const Withdraw = () => {
           </div>
         )}
       </div>
-      <ToastContainer 
-  position="top-right"
-  autoClose={3000}
-  hideProgressBar={false}
-  closeOnClick
-  pauseOnHover
-  theme="light"
-/>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        theme="light"
+        />
     </div>
+        </>
   );
 };
 

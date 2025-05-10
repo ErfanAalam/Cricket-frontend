@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Navbar from "../Navbar/Navbar";
 import { UserContext } from "../../../Context/UserContext";
 import { toast } from "react-toastify";
+import dmdp from "/assets/dmdp.png";
 
 const Portfolio = () => {
   const {
@@ -134,17 +135,17 @@ const Portfolio = () => {
   // Function to check and auto-sell team stocks based on conditions
   const checkAndAutoSellTeamStocks = async (matchData) => {
     const currentTeamHoldings = [];
-  
+
     teamPortfolio.forEach((item) => {
       const buys = item.transactions
         .filter((tx) => tx.type === "buy")
         .map((tx) => ({ ...tx }))
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  
+
       const sells = item.transactions
         .filter((tx) => tx.type === "sell")
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  
+
       for (let sell of sells) {
         let qtyToSell = sell.quantity;
         while (qtyToSell > 0 && buys.length > 0) {
@@ -155,12 +156,12 @@ const Portfolio = () => {
           if (buy.quantity === 0) buys.shift();
         }
       }
-  
+
       const remainingStocks = buys.reduce(
         (total, buy) => total + buy.quantity,
         0
       );
-  
+
       if (remainingStocks > 0) {
         currentTeamHoldings.push({
           teamId: item.teamId,
@@ -171,35 +172,30 @@ const Portfolio = () => {
         });
       }
     });
-  
+
     for (const holding of currentTeamHoldings) {
       const match = matchData.find(
         (m) => m.matchId.toString() === holding.matchId.toString()
       );
-  
+
       if (!match) continue;
-  
+
       const holdingKey = `team-${holding.matchId}-${holding.teamId}`;
-  
+
       // Determine if holding team is 1st or 2nd inning team
       const firstInningTeamId = match.innings?.[0]?.battingTeamId?.toString();
-      const isFirstInningTeam =
-        holding.teamId.toString() === firstInningTeamId;
-  
+      const isFirstInningTeam = holding.teamId.toString() === firstInningTeamId;
+
       const firstInningsCompleted = match.innings.length >= 2;
       const isMatchCompleted = match.isMatchComplete === true;
-  
+
       const shouldAutoSell =
-        isMatchCompleted ||
-        (isFirstInningTeam && firstInningsCompleted);
-  
+        isMatchCompleted || (isFirstInningTeam && firstInningsCompleted);
+
       if (shouldAutoSell && !processedMatches[holdingKey]) {
         try {
-          const currentPrice = calculateTeamPrice(
-            match,
-            holding.initialPrice
-          );
-  
+          const currentPrice = calculateTeamPrice(match, holding.initialPrice);
+
           const sellData = {
             MatchId: holding.matchId,
             teamId: holding.teamId,
@@ -208,22 +204,20 @@ const Portfolio = () => {
             price: currentPrice,
             quantity: holding.quantity,
             autoSold: true,
-            reason: isMatchCompleted
-              ? "match_completed"
-              : "innings_completed",
+            reason: isMatchCompleted ? "match_completed" : "innings_completed",
           };
-  
+
           await sellTeamPortfolio(sellData);
-  
+
           toast.info(
             `Auto-sold ${holding.quantity} team stock(s) of ${holding.teamName} - Reason: ${sellData.reason}`
           );
-  
+
           setProcessedMatches((prev) => ({
             ...prev,
             [holdingKey]: true,
           }));
-  
+
           const updatedTeamPortfolio = await getTeamPortfolio();
           setTeamPortfolioData(updatedTeamPortfolio);
         } catch (error) {
@@ -236,22 +230,21 @@ const Portfolio = () => {
       }
     }
   };
-  
 
   // Function to check and auto-sell player stocks based on conditions
   const checkAndAutoSellStocks = async (matchData) => {
     const currentHoldings = [];
-  
+
     portfolio.forEach((item) => {
       const buys = item.transactions
         .filter((tx) => tx.type === "buy")
         .map((tx) => ({ ...tx }))
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  
+
       const sells = item.transactions
         .filter((tx) => tx.type === "sell")
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  
+
       for (let sell of sells) {
         let qtyToSell = sell.quantity;
         while (qtyToSell > 0 && buys.length > 0) {
@@ -262,9 +255,12 @@ const Portfolio = () => {
           if (buy.quantity === 0) buys.shift();
         }
       }
-  
-      const remainingStocks = buys.reduce((total, buy) => total + buy.quantity, 0);
-  
+
+      const remainingStocks = buys.reduce(
+        (total, buy) => total + buy.quantity,
+        0
+      );
+
       if (remainingStocks > 0) {
         currentHoldings.push({
           playerId: item.playerId,
@@ -276,29 +272,29 @@ const Portfolio = () => {
         });
       }
     });
-  
+
     for (const holding of currentHoldings) {
       const match = matchData.find(
         (m) => m.matchId.toString() === holding.matchId.toString()
       );
-  
+
       if (!match) continue;
-  
+
       const holdingKey = `${holding.matchId}-${holding.playerId}`;
       const isMatchCompleted = match.isMatchComplete == true;
-  
+
       // Player status & innings tracking
       let playerOut = false;
       let playerData = null;
       let playerInningsIndex = null;
-  
+
       if (match.innings) {
         for (let i = 0; i < match.innings.length; i++) {
           const inning = match.innings[i];
           const batsmanData = inning.batsmen.find(
             (p) => p.id?.toString() === holding.playerId.toString()
           );
-  
+
           if (batsmanData) {
             playerData = batsmanData;
             playerInningsIndex = i; // 0 = 1st innings, 1 = 2nd innings
@@ -307,23 +303,23 @@ const Portfolio = () => {
           }
         }
       }
-  
+
       // Determine if 1st innings is completed (innings length is 2)
       const isFirstInningsCompleted = match.innings?.length === 2;
-  
+
       // Auto-sell logic
       const shouldAutoSell =
         playerOut ||
         (playerInningsIndex === 0 && isFirstInningsCompleted) || // Player in 1st innings and it completed
         (playerInningsIndex === 1 && isMatchCompleted); // Player in 2nd innings and match completed
-  
+
       if (shouldAutoSell && !processedMatches[holdingKey]) {
         try {
           const currentPrice = calculateUpdatedPrice(
             playerData,
             holding.initialPrice
           );
-  
+
           const sellData = {
             MatchId: holding.matchId,
             playerId: holding.playerId,
@@ -339,18 +335,18 @@ const Portfolio = () => {
               ? "first_innings_completed"
               : "match_completed",
           };
-  
+
           await sellPortfolio(sellData);
-  
+
           toast.info(
             `Auto-sold ${holding.quantity} stock(s) of ${holding.playerName} - Reason: ${sellData.reason}`
           );
-  
+
           setProcessedMatches((prev) => ({
             ...prev,
             [holdingKey]: true,
           }));
-  
+
           const updatedPortfolio = await getPortfolio();
           setPortfolioData(updatedPortfolio);
         } catch (error) {
@@ -360,7 +356,6 @@ const Portfolio = () => {
       }
     }
   };
-  
 
   // Get live player data from match data
   const getLivePlayerData = (playerId, matchId) => {
@@ -629,7 +624,9 @@ const Portfolio = () => {
         </div>
       ));
     } else {
-      return <h1>No current player holdings</h1>;
+      return (
+        <h1 className="align-center text-center">No current player holdings</h1>
+      );
     }
   };
 
@@ -752,7 +749,9 @@ const Portfolio = () => {
         </div>
       ));
     } else {
-      return <h1>No current team holdings</h1>;
+      return (
+        <h1 className="align-center text-center">No current team holdings</h1>
+      );
     }
   };
 
@@ -810,32 +809,149 @@ const Portfolio = () => {
       return (
         <div
           key={item.playerId + "-sold-" + index}
-          className="border p-4 m-2 shadow rounded-lg bg-gray-100 text-black"
+          className="bg-[#002865] border-2 border-[#1671CC] rounded-lg shadow-md overflow-hidden m-4 text-white"
         >
-          <h2 className="font-bold">
-            {item.playerName} ({item.team}) - Sold
-          </h2>
-          {sellDetails.map((s, i) => (
-            <div key={i} className="mb-2">
-              <p>Buy Price: ₹{s.buyPrice}</p>
-              <p>Sell Price: ₹{s.sellPrice}</p>
-              <p>Quantity Sold: {s.quantity}</p>
-              <p
-                className={`font-semibold ${
-                  s.profit >= 0 ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                P&L: ₹{s.profit} ({s.percentage}%)
-              </p>
-              {s.autoSold && (
-                <p className="italic text-gray-600">
-                  Auto-sold: {formatReason(s.reason)} on{" "}
-                  {new Date(s.timestamp).toLocaleString()}
-                </p>
-              )}
-              <hr className="my-2" />
+          {/* Header Section */}
+          <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span className="text-lg mr-2">
+                  Qty {" "}
+                  {sellDetails.reduce((acc, s) => acc + s.quantity, 0)}
+                </span>{" "}
+                |
+                <span className="text-lg ml-2">
+                  Avg ₹
+                  {(
+                    sellDetails.reduce(
+                      (acc, s) => acc + s.buyPrice * s.quantity,
+                      0
+                    ) / sellDetails.reduce((acc, s) => acc + s.quantity, 0)
+                  ).toFixed(2)}
+                </span>
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Transaction Details */}
+          <div className="flex flex-col gap-4 px-4 pb-4 overflow-x-auto">
+            {sellDetails.map((s, i) => (
+              <div
+                key={i}
+                className="bg-[#002865] text-white rounded-lg min-w-[800px] w-full p-4"
+              >
+                <div className="flex flex-wrap lg:flex-nowrap justify-between items-center gap-6">
+                  {/* Player Info */}
+                  <div className="flex items-center gap-4 w-full lg:w-auto">
+                    <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white flex-shrink-0">
+                      <img
+                        src={dmdp}
+                        alt="Player"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-lg">{item.playerName}</h2>
+                      <p className="text-sm text-gray-300 uppercase tracking-widest">
+                        {item.team
+                          .split(" ")
+                          .map((word) => word[0])
+                          .join("")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Buy Price */}
+                  <div className="text-center w-full lg:w-auto">
+                    <p className="text-sm text-gray-300">Buy Price</p>
+                    <p className="text-lg font-semibold">₹{s.buyPrice}</p>
+                  </div>
+
+                  {/* Sell Price */}
+                  <div className="text-center w-full lg:w-auto">
+                    <p className="text-sm text-gray-300">Sell Price</p>
+                    <p className="text-lg font-semibold">₹{s.sellPrice}</p>
+                  </div>
+
+                  {/* Profit / Loss */}
+                  <div className="text-center w-full lg:w-auto">
+                    <p className="text-sm text-gray-300">
+                      {s.profit >= 0 ? "Profit" : "Loss"}
+                    </p>
+                    <p
+                      className={`text-lg font-semibold ${
+                        s.profit >= 0 ? "text-green-400" : "text-red-400"
+                      }`}
+                    >
+                      ₹{s.profit}
+                    </p>
+                  </div>
+
+                  {/* Percentage */}
+                  <div className="text-center w-full lg:w-auto">
+                    <p className="text-sm text-gray-300">Percentage</p>
+                    <p
+                      className={`text-lg font-semibold ${
+                        s.percentage >= 0 ? "text-green-400" : "text-red-400"
+                      }`}
+                    >
+                      {s.percentage}%
+                    </p>
+                  </div>
+
+                  {/* Status */}
+                  <div className="text-right w-full lg:w-auto">
+                    {s.autoSold ? (
+                      <div className="flex flex-col items-end">
+                        <span className="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-xs">
+                          Auto-sold
+                        </span>
+                        <p className="mt-1 pr-2 text-xs text-gray-300">
+                          {formatReason(s.reason)}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="bg-green-900 text-green-200 px-3 py-1 rounded-full text-xs">
+                        Manual
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Summary Footer */}
+          <div className="pl-4 pr-4 pt-3 pb-3 bg-[#001e42] border-t-2 border-[#1671CC]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-white">Total Invested</p>
+                <p className="text-xl font-bold text-gray-300">
+                  ₹
+                  {sellDetails
+                    .reduce((acc, s) => acc + s.buyPrice * s.quantity, 0)
+                    .toFixed(2)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-white">Current Value</p>
+                <p
+                  className={`text-xl font-bold ${
+                    sellDetails.reduce(
+                      (acc, s) => acc + (s.sellPrice - s.buyPrice) * s.quantity,
+                      0
+                    ) >= 0
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  ₹
+                  {sellDetails
+                    .reduce((acc, s) => acc + s.sellPrice * s.quantity, 0)
+                    .toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       );
     });
@@ -1089,28 +1205,29 @@ const Portfolio = () => {
 
   // Main rendering
   return (
-    <div className="min-h-screen bg-gray-50 text-black">
+    <div
+      className="min-h-screen text-white"
+      style={{ backgroundColor: "#002865" }}
+    >
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">My Portfolio</h1>
-
+      <div className="container mx-auto px-6 py-12">
         {/* Portfolio Tab Navigation */}
-        <div className="flex mb-6 space-x-4">
+        <div className="flex justify-center mb-8 space-x-6">
           <button
-            className={`px-4 py-2 rounded-md ${
+            className={`px-6 py-3 rounded-lg text-lg font-medium transition-all duration-300 ease-in-out ${
               activeTab === "players"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700"
+                ? "bg-[#1671CC] text-white shadow-md"
+                : "bg-[#002865] text-white hover:bg-gray-400 hover:text-black"
             }`}
             onClick={() => setActiveTab("players")}
           >
             Player Portfolio
           </button>
           <button
-            className={`px-4 py-2 rounded-md ${
+            className={`px-6 py-3 rounded-lg text-lg font-medium transition-all duration-300 ease-in-out ${
               activeTab === "teams"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700"
+                ? "bg-[#1671CC] text-white shadow-md"
+                : "bg-[#002865] text-white hover:bg-gray-400 hover:text-black"
             }`}
             onClick={() => setActiveTab("teams")}
           >
@@ -1121,43 +1238,39 @@ const Portfolio = () => {
         {/* Content based on active tab */}
         {activeTab === "players" ? (
           <>
-            <h2 className="text-2xl font-semibold mb-4">
+            <h2 className="text-3xl font-semibold mb-6 text-center">
               Current Player Holdings
             </h2>
             {loading ? (
-              <p>Loading player portfolio...</p>
+              <p className="text-center">Loading player portfolio...</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {renderCurrentHoldings()}
               </div>
             )}
 
-            <h2 className="text-2xl font-semibold mt-8 mb-4">
+            <h2 className="text-3xl font-semibold mt-12 mb-6 text-center">
               Sold Players History
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {renderSoldPlayers()}
-            </div>
+            <div className="grid grid-cols-1 gap-4">{renderSoldPlayers()}</div>
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-semibold mb-4">
+            <h2 className="text-3xl font-semibold mb-6 text-center">
               Current Team Holdings
             </h2>
             {teamLoading ? (
-              <p>Loading team portfolio...</p>
+              <p className="text-center">Loading team portfolio...</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {renderTeamCurrentHoldings()}
               </div>
             )}
 
-            <h2 className="text-2xl font-semibold mt-8 mb-4">
+            <h2 className="text-3xl font-semibold mt-12 mb-6 text-center">
               Sold Teams History
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {renderSoldTeams()}
-            </div>
+            <div className="grid grid-cols-1 gap-4">{renderSoldTeams()}</div>
           </>
         )}
       </div>
@@ -1165,31 +1278,31 @@ const Portfolio = () => {
       {/* Action Buttons Modal */}
       {showActionButtons && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-white p-8 rounded-xl shadow-xl w-96 max-w-lg">
+            <h2 className="text-2xl font-bold mb-6 text-center">
               {selectedEntity === "player" ? player.playerName : team.teamName}
             </h2>
-            <p>
+            <p className="text-xl mb-4 text-center">
               Current Price: ₹
               {selectedEntity === "player"
                 ? player.currentPrice
                 : team.currentPrice}
             </p>
-            <div className="flex justify-between mt-4">
+            <div className="flex justify-between mt-6">
               <button
-                className="bg-green-500 text-white px-4 py-2 rounded"
+                className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-all"
                 onClick={() => handleActionSelect("buy")}
               >
                 Buy More
               </button>
               <button
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-all"
                 onClick={() => handleActionSelect("sell")}
               >
                 Sell
               </button>
               <button
-                className="bg-gray-500 text-white px-4 py-2 rounded"
+                className="bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition-all"
                 onClick={() => setShowActionButtons(false)}
               >
                 Cancel
@@ -1202,19 +1315,19 @@ const Portfolio = () => {
       {/* Transaction Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-white p-8 rounded-xl shadow-xl w-96 max-w-lg">
+            <h2 className="text-2xl font-bold mb-6 text-center">
               {actionType === "buy" ? "Buy" : "Sell"}{" "}
               {selectedEntity === "player" ? player.playerName : team.teamName}
             </h2>
-            <p>
+            <p className="text-xl mb-4 text-center">
               Current Price: ₹
               {selectedEntity === "player"
                 ? player.currentPrice
                 : team.currentPrice}
             </p>
-            <div className="my-4">
-              <label className="block mb-2">Quantity:</label>
+            <div className="my-6">
+              <label className="block mb-2 text-lg">Quantity:</label>
               <input
                 type="number"
                 min="1"
@@ -1227,28 +1340,28 @@ const Portfolio = () => {
                 }
                 value={stockCount}
                 onChange={(e) => setStockCount(parseInt(e.target.value) || 1)}
-                className="border p-2 w-full"
+                className="border-[#1671CC] p-3 w-full rounded-lg shadow-sm"
               />
             </div>
-            <p className="font-bold">
+            <p className="text-xl font-bold mb-6 text-center">
               Total:{" "}
               {selectedEntity === "player"
                 ? (player.currentPrice * stockCount).toFixed(2)
                 : (team.currentPrice * stockCount).toFixed(2)}{" "}
               ₹
             </p>
-            <div className="flex justify-between mt-4">
+            <div className="flex justify-between mt-6">
               <button
                 className={`${
                   actionType === "buy" ? "bg-green-500" : "bg-red-500"
-                } text-white px-4 py-2 rounded`}
+                } text-white px-6 py-3 rounded-lg hover:bg-opacity-80 transition-all`}
                 onClick={handleConfirm}
                 disabled={isLoading}
               >
                 {isLoading ? "Processing..." : "Confirm"}
               </button>
               <button
-                className="bg-gray-500 text-white px-4 py-2 rounded"
+                className="bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition-all"
                 onClick={() => setShowModal(false)}
                 disabled={isLoading}
               >

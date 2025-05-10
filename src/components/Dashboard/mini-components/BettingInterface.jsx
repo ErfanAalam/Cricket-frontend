@@ -138,7 +138,7 @@ const BettingInterface = () => {
       threes: batsman.threes || 0,
       boundaries: batsman.boundaries || 0,
       average: batsman.avg || "0.00",
-      progress: Math.min(100, (batsman.runs / (batsman.balls || 1)) * 100),
+      progress: initialPrice,
       strikeRate: batsman.strikeRate || "0.00",
       status: batsman.outDesc || "Not Out",
       isCaptain: batsman.isCaptain,
@@ -173,18 +173,22 @@ const BettingInterface = () => {
         <div className="mb-6">
           <div className="relative mb-2">
             <span className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-3 py-1 rounded-md">
-              {statusMessage !== "Loading..."
-                ? statusMessage
-                : matchData?.status}
+              {matchData?.status}
             </span>
           </div>
           <h1 className="text-center text-xl md:text-2xl font-bold mt-6">
             {currentMatch.team1} vs {currentMatch.team2}
           </h1>
-          <p className="text-center text-gray-400 mt-2">
-            Current Innings : {currentInnings?.batTeamName} -{" "}
-            {currentInnings?.score}/{currentInnings?.wickets?.length || 0}(
-            {currentInnings?.overs} ov, RR: {currentInnings?.runRate})
+          <p className="text-center text-gray-400 mt-2">Current Innings:
+            {currentInnings ? (
+              <>
+                {currentInnings.batTeamName} - {currentInnings.score}/
+                {currentInnings.wickets?.length || 0} ({currentInnings.overs}{" "}
+                ov, RR: {currentInnings.runRate || "0.00"})
+              </>
+            ) : (
+              " Not Started"
+            )}
           </p>
           {previousInnings && (
             <p className="text-center text-gray-400 mt-1">
@@ -202,8 +206,8 @@ const BettingInterface = () => {
         </div>
 
         <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">
-            Current Batting: {currentInnings?.batTeamName}
+          <h2 className="text-4xl font-bold mb-4">
+            {currentInnings?.batTeamName}
           </h2>
           {players?.length > 0 || matchData?.matchScore ? (
             <div className="space-y-4">
@@ -220,7 +224,7 @@ const BettingInterface = () => {
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((dummy) => (
                 <div
-                  className="bg-gray-900 rounded-lg p-4 cursor-pointer"
+                  className="bg-[#001D4F] rounded-lg p-4 cursor-pointer"
                   key={dummy}
                 >
                   <div className="flex items-center justify-between mb-2">

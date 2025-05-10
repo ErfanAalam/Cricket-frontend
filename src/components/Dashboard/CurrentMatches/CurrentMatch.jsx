@@ -1,6 +1,4 @@
-import { Calendar, MapPin } from "lucide-react";
 import { useContext } from "react";
-import BettingInterface from "../mini-components/BettingInterface";
 import { UserContext } from "../../../Context/UserContext";
 import Navbar from "../Navbar/Navbar";
 import MatchCard from "./MatchCard";
@@ -23,20 +21,18 @@ export default function CurrentMatch() {
       </div>
     );
   }
-  // console.log(matchData);
-  
 
   return (
     <>
       <Navbar />
       {matchData.length > 0 ? (
-        <div className="grid grid-cols-1  gap-6 p-6">
+        <div className="grid grid-cols-1 gap-6 p-6">
           {matchData.map((match, index) => (
             <MatchCard key={index} match={match} />
           ))}
         </div>
       ) : (
-        <div className="flex items-center justify-center my-10">
+        <div className="flex items-center justify-center my-10 text-white">
           <h1>No match Found</h1>
         </div>
       )}

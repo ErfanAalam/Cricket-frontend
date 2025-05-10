@@ -2,10 +2,14 @@ import { useState, useRef, useContext } from "react";
 import {
   Camera,
   ChevronRight,
+  UserLock,
   Edit,
+  HandCoins,
+  Handshake,
   LogOut,
   Phone,
   Shield,
+  User,
   Users,
 } from "lucide-react";
 import { UserContext } from "../../../Context/UserContext";
@@ -13,21 +17,20 @@ import { useNavigate } from "react-router-dom";
 import CancelIcon from "@mui/icons-material/Cancel";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import { toast } from "react-toastify";
-import dpBanner from "/assets/dp-banner.jpg?url";
-import dmdp from "/assets/dmdp.png?url";
+import dmdp from "/assets/dmdp.jpg?url";
+import dpBanner from "/assets/dp-banner.jpg";
+import { Money, Payment, Policy } from "@mui/icons-material";
+import plus from "/assets/plus.svg";
+import { load } from "@cashfreepayments/cashfree-js";
 
+const cashfree = await load({
+  mode: "sandbox",
+});
 
-import { useState, useRef, useContext } from "react"
-import { Camera, ChevronRight, Edit, LogOut, Phone, Shield, User, Users } from "lucide-react"
-import { UserContext } from "../../../Context/UserContext"
-import { useNavigate } from "react-router-dom"
-import CancelIcon from '@mui/icons-material/Cancel';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import { toast } from "react-toastify"
-import dmdp from "/assets/dmdp.jpg?url"
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
 
 export default function ProfilePage() {
-  const [balance, setBalance] = useState(100.0);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [showEditPhone, setShowEditPhone] = useState(false);
   const [showVerifyOtp, setShowVerifyOtp] = useState(false);
@@ -36,18 +39,55 @@ export default function ProfilePage() {
   const [addAmount, setAddAmount] = useState("");
   const [OTP, SetOTP] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  // Add this function after the existing state declarations:
-
   const { logout, user, uploadImage, VerifyMobile, verifyMobileOtp } =
-    useContext(UserContext);
-
+  useContext(UserContext);
+  const [balance, setBalance] = useState(user.amount);
   const navigate = useNavigate();
-  const handleLogout = () => {
-    setIsLoggingOut(true);
-      logout();
-      navigate("/login");
+
+  const checkOut = (ID) => {
+    cashfree.checkout({
+      paymentSessionId: ID,
+      redirectTarget: `/payment/orders/${ID}`,
+    });
   };
 
+  const handlePaymentRequest = async (amount) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Please login again");
+      toast.success("Redirecting to payment...");
+  
+      const orderRes = await fetch(`${BACKEND_URL}/payment/create-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ amount }),
+      });
+    
+  
+      if (!orderRes.ok) {
+        const errorData = await orderRes.json();
+        throw new Error(errorData.message || "Payment request failed");
+      }
+  
+      const data = await orderRes.json();
+      const sessionId = data.orderDetails.paymentSessionId;
+      console.log(data.orderDetails.orderId)
+      checkOut(sessionId);
+    } catch (error) {
+      toast.error(error.message || "Payment failed");
+    }
+  };
+  // Authentication Handlers
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    logout();
+    navigate("/login");
+  };
+
+  // Navigation Handlers
   const handleMenuClick = (menuItem) => {
     switch (menuItem) {
       case "My Transaction":
@@ -72,14 +112,14 @@ export default function ProfilePage() {
         navigate("/contact");
         break;
       case "Logout":
-        handleLogout();
+        setIsLoggingOut(true);
         break;
       default:
         console.log(`Clicked on ${menuItem}`);
     }
   };
 
-
+  // Profile Image Handlers
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) {
@@ -120,22 +160,8 @@ export default function ProfilePage() {
       toast.error("Error uploading image: " + error.message);
     }
   };
-  const handleImageChange =async (e) => {
-    const file = e.target.files[0]
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("File size exceeds 2MB")
-      return
-    }
 
-    try{
-      await uploadImage(file);
-      toast.success("Image uploaded successfully")
-    }
-    catch(err){
-      toast.error("Error uploading image")
-    }
-  }
-
+  // Phone Verification Handlers
   const handlePhoneSubmit = async (e, mobile) => {
     e.preventDefault();
     // check mobile number is start with +91
@@ -212,9 +238,9 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen realtive text-white">
-      {/* Header with profile */}
+      {/* Profile Header Section */}
       <div
-        className="absolute top-2 right-2 z-100 "
+        className="absolute top-2 right-2 z-100"
         onClick={handleCloseProfile}
       >
         <CancelIcon />
@@ -269,7 +295,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Phone number edit modal */}
+      {/* Modal Components */}
+      {/* Phone Number Edit Modal */}
       {showEditPhone && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md text-gray-800">
@@ -302,7 +329,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Verify OTP modal */}
+      {/* OTP Verification Modal */}
       {showVerifyOtp && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md text-gray-800">
@@ -335,19 +362,25 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Add Money modal */}
+      {/* Add Money Modal */}
       {showAddMoney && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md text-gray-800">
             <h3 className="font-bold text-lg mb-4">Add Money</h3>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 const amount = Number.parseFloat(addAmount);
                 if (!isNaN(amount) && amount > 0) {
-                  setBalance((prevBalance) => prevBalance + amount);
-                  setAddAmount("");
-                  setShowAddMoney(false);
+                  try {
+                    handlePaymentRequest(amount);
+                    setAddAmount("");
+                    setShowAddMoney(false);
+                  } catch (error) {
+                    console.error("Payment error:", error);
+                  }
+                } else {
+                  toast.error("Please enter a valid amount");
                 }
               }}
             >
@@ -378,7 +411,7 @@ export default function ProfilePage() {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
-                  Add Money
+                  Add
                 </button>
               </div>
             </form>
@@ -386,30 +419,30 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Balance Card */}
+      {/* Balance Display Section */}
       <div className="p-4">
-        <div className="bg-blue-500 rounded-lg p-4 flex justify-between items-center">
+        <div className="bg-[#1671CC] rounded-lg p-4 flex justify-between items-center">
           <div>
-            <p className="text-xs opacity-80">BALANCE</p>
-            <p className="text-2xl font-bold">₹ {balance.toFixed(2)}</p>
+            <p className="text-xs opacity-80">Wallet Balance</p>
+            <p className="text-2xl font-bold">₹ {balance}</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowAddMoney(true)}
-              className="bg-blue-600 hover:bg-blue-700 rounded-full p-2 flex items-center"
+              className="border-1 hover:border-[#1671CC] border-transparent bg-transparent hover:bg-[#002865] rounded-full px-4 py-2 flex items-center hover:text-[#16711CC] text-white"
             >
-              <span className="mr-1">+</span>
+              <img className="mr-2 w-5 h-5" src={plus} alt="" />
               <span className="">Add Money</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Menu Sections */}
+      {/* Menu Navigation Section */}
       <div className="p-4">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">My Account</h3>
-          <div className="bg-blue-800 bg-opacity-30 rounded-lg">
+          <div className="bg-[#002865] bg-opacity-30 rounded-lg">
             <MenuItem
               icon={<ChevronRight size={18} />}
               text="My Transaction"
@@ -432,21 +465,24 @@ export default function ProfilePage() {
             />
           </div>
         </div>
+        {/* Logout Confirmation Modal */}
         {isLoggingOut && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-6 w-full max-w-md text-gray-800">
-              <h3 className="font-bold text-lg mb-4">Do you really want to logout..?</h3>
+              <h3 className="font-bold text-lg mb-4">
+                Do you really want to logout?
+              </h3>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsLoggingOut(false)}
+                  onClick={() => setIsLoggingOut(false)} // Close the modal
                   className="px-4 py-2 bg-gray-200 rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={handleLogout} // Confirm logout
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
                   Logout
@@ -458,7 +494,7 @@ export default function ProfilePage() {
 
         <div>
           <h3 className="text-lg font-semibold mb-2">Legality & Security</h3>
-          <div className="bg-blue-800 bg-opacity-30 rounded-lg">
+          <div className="bg-[#002865] bg-opacity-30 rounded-lg">
             <MenuItem
               icon={<ChevronRight size={18} />}
               text="Terms and Conditions"
@@ -473,6 +509,12 @@ export default function ProfilePage() {
               icon={<ChevronRight size={18} />}
               text="Contact Us"
               onClick={() => handleMenuClick("Contact Us")}
+            />
+            <MenuItem
+              icon={<UserLock size={18} />}
+              text="Admin Dashboard"
+              isLast={true}
+              // onClick={handleNavigateAdmin}
             />
             <MenuItem
               icon={<LogOut size={18} />}
@@ -490,16 +532,14 @@ export default function ProfilePage() {
 function MenuItem({ icon, text, isLast = false, onClick }) {
   return (
     <div
-      className={`flex items-center justify-between p-3 ${
-        !isLast && "border-b border-blue-700"
-      } cursor-pointer hover:bg-blue-700 hover:bg-opacity-30 transition-colors`}
+      className={`flex rounded-lg items-center justify-between p-3 cursor-pointer hover:bg-[#1671CC] hover:bg-opacity-30 transition-colors`}
       onClick={onClick}
     >
       <div className="flex items-center">
         <span className="mr-3 text-blue-300">{getIconForMenuItem(text)}</span>
         <span>{text}</span>
       </div>
-      <span className="text-blue-300">{icon}</span>
+      <span className="text-blue-300">{<ChevronRight />}</span>
     </div>
   );
 }
@@ -507,17 +547,17 @@ function MenuItem({ icon, text, isLast = false, onClick }) {
 function getIconForMenuItem(text) {
   switch (text) {
     case "My Transaction":
-      return <ChevronRight size={18} />;
+      return <Payment size={18} />;
     case "Withdraw":
-      return <ChevronRight size={18} />;
+      return <HandCoins size={18} />;
     case "KYC Verification":
       return <Shield size={18} />;
     case "Invite Friends":
       return <Users size={18} />;
     case "Terms and Conditions":
-      return <ChevronRight size={18} />;
+      return <Handshake size={18} />;
     case "Privacy Policy":
-      return <ChevronRight size={18} />;
+      return <Policy size={18} />;
     case "Contact Us":
       return <Phone size={18} />;
     case "Logout":
