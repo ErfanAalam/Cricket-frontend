@@ -195,7 +195,7 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const connectSocket = () => {
-      socket.current = io(BACKEND_URL, {
+      socket.current = io("wss://cricket-backend-kohl.vercel.app", {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
