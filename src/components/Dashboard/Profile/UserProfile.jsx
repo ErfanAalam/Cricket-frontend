@@ -1,4 +1,4 @@
-import { useState, useRef, useContext } from "react";
+import { useState, useRef, useContext, useEffect } from "react";
 import {
   Camera,
   ChevronRight,
@@ -23,9 +23,9 @@ import { Money, Payment, Policy } from "@mui/icons-material";
 import plus from "/assets/plus.svg";
 import { load } from "@cashfreepayments/cashfree-js";
 
-const cashfree = await load({
-  mode: "sandbox",
-});
+// const cashfree = await load({
+//   mode: "sandbox",
+// });
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
@@ -40,11 +40,34 @@ export default function ProfilePage() {
   const [OTP, SetOTP] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { logout, user, uploadImage, VerifyMobile, verifyMobileOtp } =
-  useContext(UserContext);
+    useContext(UserContext);
   const [balance, setBalance] = useState(user.amount);
   const navigate = useNavigate();
 
+  // new line added ofr cahsfree
+
+  const [cashfree, setCashfree] = useState(null);
+
+  useEffect(() => {
+    const loadCashfree = async () => {
+      try {
+        const cf = await load({ mode: "sandbox" });
+        setCashfree(cf);
+      } catch (error) {
+        console.error("Cashfree load failed:", error);
+        toast.error("Failed to initialize payment gateway.");
+      }
+    };
+
+    loadCashfree();
+  }, []);
+
   const checkOut = (ID) => {
+    if (!cashfree) {
+      toast.warn("Payment gateway is still loading...");
+      return;
+    }
+
     cashfree.checkout({
       paymentSessionId: ID,
       redirectTarget: `/payment/orders/${ID}`,
@@ -56,7 +79,7 @@ export default function ProfilePage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please login again");
       toast.success("Redirecting to payment...");
-  
+
       const orderRes = await fetch(`${BACKEND_URL}/payment/create-order`, {
         method: "POST",
         headers: {
@@ -65,16 +88,15 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({ amount }),
       });
-    
-  
+
       if (!orderRes.ok) {
         const errorData = await orderRes.json();
         throw new Error(errorData.message || "Payment request failed");
       }
-  
+
       const data = await orderRes.json();
       const sessionId = data.orderDetails.paymentSessionId;
-      console.log(data.orderDetails.orderId)
+      console.log(data.orderDetails.orderId);
       checkOut(sessionId);
     } catch (error) {
       toast.error(error.message || "Payment failed");
