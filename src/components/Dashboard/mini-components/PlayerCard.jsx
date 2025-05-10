@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../Context/UserContext";
 import { toast } from "react-toastify";
-import ticker from "/assets/ticker.png";
+// import ticker from "/assets/ticker.png";
 import { X } from "lucide-react";
 const PlayerCard = ({ player, index, matchId }) => {
   const [price, setPrice] = useState(player.price);
